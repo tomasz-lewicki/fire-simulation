@@ -33,7 +33,7 @@ def save_images(states_history, fuel_history, dir_name, start_number, img_shape=
 
         padded_n = '{0:05d}'.format(start_number*n_images+i)
 
-        red = cv2.resize(states_history[i], img_shape)
+        red = cv2.resize(states_history[i], img_shape, interpolation=cv2.INTER_AREA)
         if color:
             green = cv2.resize(fuel_history[i], img_shape)
             blue = np.zeros_like(green)
@@ -57,7 +57,8 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
     if save:
         # we will output images here
         dir_name =  f'cells={str(n_cells)}steps={str(n_epochs*n_steps)}ignition_prob={str(ignition_prob)}tree_density={str(tree_density)}, burn_rate={str(burn_rate)}'
-        os.mkdir(dir_name)
+        if not os.path.isdir(dir_name):
+            os.mkdir(dir_name)
 
     # fuel corresponds to the ammount of fuel in each cell (0-255)
     fuel = np.zeros((n_cells, n_cells), dtype=np.uint8)
@@ -106,7 +107,9 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
 if __name__ == '__main__':
 
     #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
-    N_CELLS = 1000
+    N_CELLS = 100
+    N_DRONES = 10
+    
 
     sim_arguments = {
         'n_cells': N_CELLS,
@@ -115,7 +118,7 @@ if __name__ == '__main__':
         'n_steps': 10,
         'ignition_prob': 0.2,
         'n_epochs': 10,
-        'save': False,
+        'save': True,
         'color': False
     }
 
@@ -124,4 +127,6 @@ if __name__ == '__main__':
     p.start()
     p.join()
 
+    drones = np.random.randint(N_DRONES, 2)
+    
 
