@@ -5,6 +5,7 @@ import skimage.io
 import numpy as np
 import os
 import cv2
+from multiprocessing import Process
 
 np.random.seed(42) # reproducibility
 
@@ -103,4 +104,24 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
             save_images(states_history, fuel_history, dir_name, start_number=e)
 
 if __name__ == '__main__':
-    run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
+
+    #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
+    N_CELLS = 1000
+
+    sim_arguments = {
+        'n_cells': N_CELLS,
+        'tree_density': 0.525,
+        'burn_rate': 3,
+        'n_steps': 10,
+        'ignition_prob': 0.2,
+        'n_epochs': 10,
+        'save': False,
+        'color': False
+    }
+
+
+    p = Process(target=run, kwargs=sim_arguments)
+    p.start()
+    p.join()
+
+
