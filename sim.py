@@ -56,7 +56,7 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False):
+def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False):
     # initialization n_cells x n_cells could correspond to 1000x1000m
 
     if save:
@@ -111,7 +111,7 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
 
 if __name__ == '__main__':
 
-    #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
+    #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False)
     N_CELLS = 100
     N_DRONES = 10
     
@@ -123,8 +123,7 @@ if __name__ == '__main__':
         'n_steps': 100,
         'ignition_prob': 0.2,
         'n_epochs': 10,
-        'save': True,
-        'color': False
+        'save': True
     }
 
 
