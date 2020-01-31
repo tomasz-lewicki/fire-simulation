@@ -27,15 +27,15 @@ def gkern(l=5, sig=1.):
 
     return kernel / np.sum(kernel)
 
-def save_images(states_history, fuel_history, dir_name, start_number, img_shape= (2000,2000), color=False): #TODO: have corresponding dict {state='blue', fuel='red'}
+def save_images(states_history, fuel_history, dir_name, start_number, img_shape= (2000,2000), color=True): #TODO: have corresponding dict {state='blue', fuel='red'}
     n_images = len(states_history)
     for i in range(n_images):
 
         padded_n = '{0:05d}'.format(start_number*n_images+i)
 
-        red = cv2.resize(states_history[i], img_shape, interpolation=cv2.INTER_AREA)
+        red = cv2.resize(states_history[i], img_shape, interpolation=cv2.INTER_NEAREST)
         if color:
-            green = cv2.resize(fuel_history[i], img_shape)
+            green = cv2.resize(fuel_history[i], img_shape, interpolation=cv2.INTER_NEAREST)
             blue = np.zeros_like(green)
             im = np.stack([red, green, blue], axis=-1)
         else:
@@ -107,7 +107,7 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
 if __name__ == '__main__':
 
     #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
-    N_CELLS = 100
+    N_CELLS = 1000
     N_DRONES = 10
     
 
