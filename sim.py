@@ -32,10 +32,15 @@ def save_images(states_history, fuel_history, dir_name, start_number, img_shape=
     for i in range(n_images):
 
         padded_n = '{0:05d}'.format(start_number*n_images+i)
+        
+        red = states_history[i]
+        red[red>0] = 255 # make fire cells max intensity
+        green = fuel_history[i]
+        green[red>0] = 0
 
-        red = cv2.resize(states_history[i], img_shape, interpolation=cv2.INTER_NEAREST)
+        red = cv2.resize(red, img_shape, interpolation=cv2.INTER_NEAREST)
         if color:
-            green = cv2.resize(fuel_history[i], img_shape, interpolation=cv2.INTER_NEAREST)
+            green = cv2.resize(green, img_shape, interpolation=cv2.INTER_NEAREST)
             blue = np.zeros_like(green)
             im = np.stack([red, green, blue], axis=-1)
         else:
@@ -107,7 +112,7 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
 if __name__ == '__main__':
 
     #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False, color=False)
-    N_CELLS = 1000
+    N_CELLS = 100
     N_DRONES = 10
     
 
@@ -115,7 +120,7 @@ if __name__ == '__main__':
         'n_cells': N_CELLS,
         'tree_density': 0.525,
         'burn_rate': 3,
-        'n_steps': 10,
+        'n_steps': 100,
         'ignition_prob': 0.2,
         'n_epochs': 10,
         'save': True,
