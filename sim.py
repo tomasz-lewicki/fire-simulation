@@ -1,13 +1,13 @@
+from multiprocessing import Process
+import os
+import datetime
+
 import numpy as np
 import scipy.signal
+import cv2
+
 import matplotlib.pyplot as plt
 import skimage.io
-import numpy as np
-import os
-import cv2
-from multiprocessing import Process
-
-np.random.seed(42) # reproducibility
 
 def ignite_center(state):
     center_x = int(state.shape[0]/2)
@@ -93,14 +93,17 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
             save_images(states_history, fuel_history, save_dir, start_number=e)
 
 
-def fuel_map(n_cells, tree_density):
+def make_fuel_map(n_cells, tree_density, seed=42):
     # fuel corresponds to the ammount of fuel in each cell (0-255)
-    fuel = np.zeros((n_cells, n_cells), dtype=np.uint8)
 
+    fuel = np.zeros((n_cells, n_cells), dtype=np.uint8)
+    
     # fill tree_density percentage of cells with trees
     # (e.g. 0.55 corresponds to 55% cells having trees (fuel) and 45% being empty)
     n_trees = int(n_cells**2 * tree_density) 
     trees = np.random.randint(0 ,n_cells, (n_trees,2))
+    
+    np.random.seed(seed) # reproducibility
     fuel[trees[:,0], trees[:,1]] = np.random.randint(0,255,n_trees)
 
     return fuel
@@ -112,7 +115,7 @@ if __name__ == '__main__':
     N_DRONES = 10
     
     #create fuel map
-    fuel = fuel_map(N_CELLS, tree_density=0.55)
+    fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
 
     # create array holding the states of the simulation
     state = np.zeros_like(fuel) # should the type be dtype=np.bool?
@@ -128,7 +131,7 @@ if __name__ == '__main__':
     }
 
     # we will output images here
-    dir_name =  f"cells={str(state.shape)} steps={str(sim_args['n_epochs']*sim_args['n_steps'])} ignition_prob={str(sim_args['ignition_prob'])} burn_rate={str(sim_args['burn_rate'])}"
+    dir_name =  f"cells={str(state.shape)} steps={str(sim_args['n_epochs']*sim_args['n_steps'])} ignition_prob={str(sim_args['ignition_prob'])} burn_rate={str(sim_args['burn_rate'])} time={str(datetime.datetime.now())}"
     
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
