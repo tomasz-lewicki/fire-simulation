@@ -131,7 +131,7 @@ if __name__ == '__main__':
     }
 
     # we will output images here
-    dir_name =  f"cells={str(state.shape)} steps={str(sim_args['n_epochs']*sim_args['n_steps'])} ignition_prob={str(sim_args['ignition_prob'])} burn_rate={str(sim_args['burn_rate'])} time={str(datetime.datetime.now())}"
+    dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
     
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
