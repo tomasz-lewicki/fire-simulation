@@ -56,31 +56,14 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False):
-    # initialization n_cells x n_cells could correspond to 1000x1000m
+def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None):
 
-    if save:
-        # we will output images here
-        dir_name =  f'cells={str(n_cells)}steps={str(n_epochs*n_steps)}ignition_prob={str(ignition_prob)}tree_density={str(tree_density)}, burn_rate={str(burn_rate)}'
-        if not os.path.isdir(dir_name):
-            os.mkdir(dir_name)
+    state = state_array
+    fuel = fuel_array
 
-    # fuel corresponds to the ammount of fuel in each cell (0-255)
-    fuel = np.zeros((n_cells, n_cells), dtype=np.uint8)
-
-    # fill tree_density percentage of cells with trees
-    # (e.g. 0.55 corresponds to 55% cells having trees (fuel) and 45% being empty)
-    n_trees = int(n_cells**2 * tree_density) 
-    trees = np.random.randint(0 ,n_cells, (n_trees,2))
-    fuel[trees[:,0], trees[:,1]] = np.random.randint(0,255,n_trees)
-
-
-    state = np.zeros_like(fuel) # should the type be dtype=np.bool?
-    ignite_center(state)
     states_history = np.array(np.zeros((n_steps,*state.shape)), dtype=np.uint8)
     ignitions_history = np.zeros((n_steps,*state.shape), dtype=np.uint8)
     fuel_history = np.zeros((n_steps,*state.shape), dtype=np.uint8)
-
 
     for e in range(n_epochs):
         print(f'epoch:{e}')
@@ -106,31 +89,56 @@ def run(n_cells=1000, tree_density=0.525123333333333333333, burn_rate=3, n_steps
             states_history[i] = state
             fuel_history[i] = fuel
 
-        if save:
-            save_images(states_history, fuel_history, dir_name, start_number=e)
+        if save_dir:
+            save_images(states_history, fuel_history, save_dir, start_number=e)
+
+
+def fuel_map(n_cells, tree_density):
+    # fuel corresponds to the ammount of fuel in each cell (0-255)
+    fuel = np.zeros((n_cells, n_cells), dtype=np.uint8)
+
+    # fill tree_density percentage of cells with trees
+    # (e.g. 0.55 corresponds to 55% cells having trees (fuel) and 45% being empty)
+    n_trees = int(n_cells**2 * tree_density) 
+    trees = np.random.randint(0 ,n_cells, (n_trees,2))
+    fuel[trees[:,0], trees[:,1]] = np.random.randint(0,255,n_trees)
+
+    return fuel
+
 
 if __name__ == '__main__':
 
-    #run(n_cells=1000, tree_density=0.525, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save=False)
     N_CELLS = 100
     N_DRONES = 10
     
+    #create fuel map
+    fuel = fuel_map(N_CELLS, tree_density=0.55)
 
-    sim_arguments = {
-        'n_cells': N_CELLS,
-        'tree_density': 0.525,
+    # create array holding the states of the simulation
+    state = np.zeros_like(fuel) # should the type be dtype=np.bool?
+    ignite_center(state)
+
+    sim_args = {
+        'state_array': state,
+        'fuel_array': fuel,
         'burn_rate': 3,
-        'n_steps': 100,
+        'n_steps': 10,
         'ignition_prob': 0.2,
-        'n_epochs': 10,
-        'save': True
+        'n_epochs': 10
     }
 
+    # we will output images here
+    dir_name =  f"cells={str(state.shape)} steps={str(sim_args['n_epochs']*sim_args['n_steps'])} ignition_prob={str(sim_args['ignition_prob'])} burn_rate={str(sim_args['burn_rate'])}"
+    
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
 
-    p = Process(target=run, kwargs=sim_arguments)
+    sim_args['save_dir'] = dir_name
+
+    p = Process(target=run, kwargs=sim_args)
     p.start()
     p.join()
 
-    drones = np.random.randint(N_DRONES, 2)
+    # drones = np.random.randint((N_DRONES, 2))
     
 
