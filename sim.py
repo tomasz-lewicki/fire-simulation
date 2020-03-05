@@ -9,6 +9,8 @@ import cv2
 import matplotlib.pyplot as plt
 import skimage.io
 
+import time
+
 def ignite_center(state):
     center_x = int(state.shape[0]/2)
     center_y = int(state.shape[1]/2)
@@ -56,7 +58,7 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None):
+def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None, loop_min_dur=1):
 
     state = state_array
     fuel = fuel_array
@@ -70,7 +72,7 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
         # run simulation
         for i in range(n_steps):
 
-
+            iter_start = time.monotonic()
             # calculate new ignitons
             count_neighbors_on_fire = scipy.signal.convolve2d(state, kernel5by5, 'same')
             ignitions = (count_neighbors_on_fire * np.random.random(state.shape) > ignition_prob) * fuel
@@ -88,6 +90,11 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
             ignitions_history[i] = ignitions
             states_history[i] = state
             fuel_history[i] = fuel
+            iter_stop = time.monotonic()
+
+            iter_delay = iter_stop - iter_start
+            if(iter_delay<loop_min_dur):
+                time.sleep(loop_min_dur-iter_delay)
 
         if save_dir:
             save_images(states_history, fuel_history, save_dir, start_number=e)
