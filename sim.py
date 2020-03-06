@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import os
 import datetime
+import copy
 
 import numpy as np
 import scipy.signal
@@ -15,6 +16,21 @@ def ignite_center(state):
     center_x = int(state.shape[0]/2)
     center_y = int(state.shape[1]/2)
     state[center_x-3:center_x+3,center_y-3:center_y+3] = 1
+
+def state_to_rgb(state_arr, fuel_arr):
+    red = copy.copy(state_arr)
+    red[red>0] = 255 # make fire cells max intensity
+    green = copy.copy(fuel_arr)
+    green[red>0] = 0
+
+    # if we need to resize
+    #red = cv2.resize(red, img_shape, interpolation=cv2.INTER_NEAREST)
+    #green = cv2.resize(green, img_shape, interpolation=cv2.INTER_NEAREST)
+
+    blue = np.zeros_like(green)
+    im = np.stack([red, green, blue], axis=-1)
+
+    return im
     
 
 def gkern(l=5, sig=1.):
@@ -119,7 +135,6 @@ def make_fuel_map(n_cells, tree_density, seed=42):
 if __name__ == '__main__':
 
     N_CELLS = 100
-    N_DRONES = 10
     
     #create fuel map
     fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
