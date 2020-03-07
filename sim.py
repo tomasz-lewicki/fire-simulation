@@ -74,7 +74,7 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None, loop_min_dur=1):
+def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None, loop_min_dur=0):
 
     state = state_array
     fuel = fuel_array
@@ -108,6 +108,7 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
             fuel_history[i] = fuel
             iter_stop = time.monotonic()
 
+            
             iter_delay = iter_stop - iter_start
             if(iter_delay<loop_min_dur):
                 time.sleep(loop_min_dur-iter_delay)
@@ -134,7 +135,8 @@ def make_fuel_map(n_cells, tree_density, seed=42):
 
 if __name__ == '__main__':
 
-    N_CELLS = 100
+    SAVE_IMAGES = False
+    N_CELLS = 1000
     
     #create fuel map
     fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
@@ -147,23 +149,23 @@ if __name__ == '__main__':
         'state_array': state,
         'fuel_array': fuel,
         'burn_rate': 3,
-        'n_steps': 10,
+        'n_steps': 100,
         'ignition_prob': 0.2,
         'n_epochs': 10
     }
 
-    # we will output images here
-    dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
-    
-    if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
+    # we can output images here
+    if SAVE_IMAGES:
+        dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
 
-    sim_args['save_dir'] = dir_name
+        if not os.path.isdir(dir_name):
+            os.mkdir(dir_name)
+
+        sim_args['save_dir'] = dir_name
 
     p = Process(target=run, kwargs=sim_args)
     p.start()
     p.join()
 
-    # drones = np.random.randint((N_DRONES, 2))
     
 
