@@ -1,7 +1,6 @@
 from multiprocessing import Process
 import os
 import datetime
-import copy
 
 import numpy as np
 import scipy.signal
@@ -10,27 +9,10 @@ import cv2
 import matplotlib.pyplot as plt
 import skimage.io
 
-import time
-
 def ignite_center(state):
     center_x = int(state.shape[0]/2)
     center_y = int(state.shape[1]/2)
     state[center_x-3:center_x+3,center_y-3:center_y+3] = 1
-
-def state_to_rgb(state_arr, fuel_arr):
-    red = copy.copy(state_arr)
-    red[red>0] = 255 # make fire cells max intensity
-    green = copy.copy(fuel_arr)
-    green[red>0] = 0
-
-    # if we need to resize
-    #red = cv2.resize(red, img_shape, interpolation=cv2.INTER_NEAREST)
-    #green = cv2.resize(green, img_shape, interpolation=cv2.INTER_NEAREST)
-
-    blue = np.zeros_like(green)
-    im = np.stack([red, green, blue], axis=-1)
-
-    return im
     
 
 def gkern(l=5, sig=1.):
@@ -74,7 +56,7 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None, loop_min_dur=0):
+def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None):
 
     state = state_array
     fuel = fuel_array
@@ -88,7 +70,7 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
         # run simulation
         for i in range(n_steps):
 
-            iter_start = time.monotonic()
+
             # calculate new ignitons
             count_neighbors_on_fire = scipy.signal.convolve2d(state, kernel5by5, 'same')
             ignitions = (count_neighbors_on_fire * np.random.random(state.shape) > ignition_prob) * fuel
@@ -106,16 +88,9 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
             ignitions_history[i] = ignitions
             states_history[i] = state
             fuel_history[i] = fuel
-            iter_stop = time.monotonic()
-
-            
-            iter_delay = iter_stop - iter_start
-            if(iter_delay<loop_min_dur):
-                time.sleep(loop_min_dur-iter_delay)
 
         if save_dir:
             save_images(states_history, fuel_history, save_dir, start_number=e)
-
 
 def make_fuel_map(n_cells, tree_density, seed=42):
     # fuel corresponds to the ammount of fuel in each cell (0-255)
@@ -135,8 +110,8 @@ def make_fuel_map(n_cells, tree_density, seed=42):
 
 if __name__ == '__main__':
 
-    SAVE_IMAGES = False
     N_CELLS = 1000
+    N_DRONES = 10
     
     #create fuel map
     fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
@@ -154,18 +129,14 @@ if __name__ == '__main__':
         'n_epochs': 10
     }
 
-    # we can output images here
-    if SAVE_IMAGES:
-        dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
+    # we will output images here
+    dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
+    
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
 
-        if not os.path.isdir(dir_name):
-            os.mkdir(dir_name)
-
-        sim_args['save_dir'] = dir_name
+    sim_args['save_dir'] = dir_name
 
     p = Process(target=run, kwargs=sim_args)
     p.start()
     p.join()
-
-    
-
