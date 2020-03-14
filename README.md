@@ -19,7 +19,17 @@ cd sim_output_cells=(100, 100)_steps=1000_ignition_prob=0.2_burn_rate=3_time=202
 
 If you want to assemble the files into an animation, you can do so using ```ffmpeg```
 ```shell
-ffmpeg -i out%03d.png -c:v libx264 -crf 0 -preset veryslow -c:a libmp3lame -b:a 320k output.mp4
+ffmpeg -i frame%05d.png -c:v libx264 -crf 0 -preset veryslow -c:a libmp3lame -b:a 320k output.mp4
+```
+
+If you want to run using a specific grid size (e.g. 1000x1000 cells):
+```
+python3 -i example.py --n-cells=1000
+```
+
+If you want to test simulation without generating the png output (much faster):
+```
+python3 -i example.py --no-png-output
 ```
 
 The result will look somewhat like this:
