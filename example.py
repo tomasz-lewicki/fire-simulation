@@ -12,9 +12,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--no-png-output', action='store_true')
+    parser.add_argument('--n-cells', type=int)
     args = parser.parse_args()
 
-    N_CELLS = 300
+    if args.n_cells:
+        N_CELLS = args.n_cells
+    else:
+        N_CELLS = 200
     
     #create fuel map
     fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
@@ -35,8 +39,6 @@ if __name__ == '__main__':
     # we will output images here
     dir_name =  f"sim_output_cells={str(state.shape)}_steps={str(sim_args['n_epochs']*sim_args['n_steps'])}_ignition_prob={str(sim_args['ignition_prob'])}_burn_rate={str(sim_args['burn_rate'])}_time={str(datetime.datetime.now())}"
     
-
-
     if not args.no_png_output:
         sim_args['save_dir'] = dir_name
 
