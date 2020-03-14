@@ -1,6 +1,8 @@
 from multiprocessing import Process
 import os
 import datetime
+import copy
+import time
 
 import numpy as np
 import scipy.signal
@@ -26,6 +28,21 @@ def gkern(l=5, sig=1.):
     kernel = np.exp(-0.5 * (np.square(xx) + np.square(yy)) / np.square(sig))
 
     return kernel / np.sum(kernel)
+
+def state_to_rgb(state_arr, fuel_arr):
+    red = copy.copy(state_arr)
+    red[red>0] = 255 # make fire cells max intensity
+    green = copy.copy(fuel_arr)
+    green[red>0] = 0
+
+    # if we need to resize
+    #red = cv2.resize(red, img_shape, interpolation=cv2.INTER_NEAREST)
+    #green = cv2.resize(green, img_shape, interpolation=cv2.INTER_NEAREST)
+
+    blue = np.zeros_like(green)
+    im = np.stack([red, green, blue], axis=-1)
+
+    return im
 
 def save_images(states_history, fuel_history, dir_name, start_number, img_shape= (2000,2000), color=True): #TODO: have corresponding dict {state='blue', fuel='red'}
     n_images = len(states_history)
@@ -56,7 +73,7 @@ kernel5by5[2,2] = 0
 kernel5by5 = kernel3by3
 
 
-def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None):
+def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_epochs=10, save_dir=None, loop_min_dur=0):
 
     state = state_array
     fuel = fuel_array
@@ -70,13 +87,13 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
         # run simulation
         for i in range(n_steps):
 
+            iter_start = time.monotonic()
 
             # calculate new ignitons
             count_neighbors_on_fire = scipy.signal.convolve2d(state, kernel5by5, 'same')
             ignitions = (count_neighbors_on_fire * np.random.random(state.shape) > ignition_prob) * fuel
             state += ignitions
             
-
             #update fuel status
             on_fire_mask = state > 0
             burned_out_mask = fuel < burn_rate
@@ -88,6 +105,12 @@ def run(state_array, fuel_array, burn_rate=3, n_steps=10, ignition_prob=0.2, n_e
             ignitions_history[i] = ignitions
             states_history[i] = state
             fuel_history[i] = fuel
+
+            iter_stop = time.monotonic()
+
+            iter_delay = iter_stop - iter_start
+            if(iter_delay<loop_min_dur):
+                time.sleep(loop_min_dur-iter_delay)
 
         if save_dir:
             save_images(states_history, fuel_history, save_dir, start_number=e)
