@@ -6,6 +6,9 @@ import argparse
 import datetime
 import os
 
+import time
+import matplotlib.pyplot as plt
+
 
 if __name__ == '__main__':
 
@@ -21,7 +24,7 @@ if __name__ == '__main__':
         N_CELLS = 200
     
     #create fuel map
-    fuel = make_fuel_map(N_CELLS, tree_density=0.55, seed=42)
+    fuel = make_fuel_map(N_CELLS, tree_density=0.65, seed=42)
 
     # create array holding the states of the simulation
     state = np.zeros_like(fuel) # should the type be dtype=np.bool?
@@ -31,9 +34,10 @@ if __name__ == '__main__':
         'state_array': state,
         'fuel_array': fuel,
         'burn_rate': 3,
-        'n_steps': 100,
+        'n_steps': 10000,
         'ignition_prob': 0.2,
-        'n_epochs': 10
+        'n_epochs': 1,
+        'loop_min_dur': 1
     }
 
     # we will output images here
@@ -49,5 +53,24 @@ if __name__ == '__main__':
 
     p = Thread(target=run, kwargs=sim_args)
     p.start()
+    
+    plt.figure()
+
+    #subplot(r,c) provide the no. of rows and columns
+    f, axarr = plt.subplots(1,2) 
+
+    belief = np.zeros_like(state)
+    h, w = state.shape
+
+    fov = 25
+
+    for i in range(0,w,fov):
+        for j in range(0,h,fov):
+            belief[j:j+fov,i:i+fov] = state[j:j+fov,i:i+fov]
+            axarr[0].imshow(belief)
+            axarr[1].imshow(state)
+            plt.pause(0.01)
+    plt.show()
+
     p.join()
     
